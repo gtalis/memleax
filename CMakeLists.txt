@@ -39,26 +39,36 @@ else()
   message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}. Only GNU/Linux and FreeBSD are supported.")
 endif()
 
-execute_process(COMMAND uname -m
-  RESULT_VARIABLE UNAME_RES OUTPUT_VARIABLE
-  UNAME_OUT OUTPUT_STRIP_TRAILING_WHITESPACE)
-if (UNAME_RES)
-  message(FATAL_ERROR "Error running uname, result: ${UNAME_RES}")
+set(TARGET_ARCH "autodetect" CACHE STRING "Target Architecture")
+
+if (TARGET_ARCH STREQUAL "autodetect")
+	execute_process(COMMAND uname -m
+	  RESULT_VARIABLE UNAME_RES OUTPUT_VARIABLE
+	  MACHINE_TYPE OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (UNAME_RES)
+	  message(FATAL_ERROR "Error running uname, result: ${UNAME_RES}")
+	endif()
+else()
+	set(MACHINE_TYPE ${TARGET_ARCH})
 endif()
-if (UNAME_OUT STREQUAL "x86" OR UNAME_OUT STREQUAL "i386" OR UNAME_OUT STREQUAL "i686")
+
+message("Machine type is: ${MACHINE_TYPE}")
+
+
+if (MACHINE_TYPE STREQUAL "x86" OR MACHINE_TYPE STREQUAL "i386" OR MACHINE_TYPE STREQUAL "i686")
   target_compile_options(memleax PRIVATE -DMLX_X86)
   target_link_libraries(memleax PRIVATE unwind-x86)
-elseif (UNAME_OUT STREQUAL "x86_64" OR UNAME_OUT STREQUAL "amd64")
+elseif (MACHINE_TYPE STREQUAL "x86_64" OR MACHINE_TYPE STREQUAL "amd64")
   target_compile_options(memleax PRIVATE -DMLX_X86_64)
   target_link_libraries(memleax PRIVATE unwind-x86_64)
-elseif (UNAME_OUT MATCHES "armv7.*")
+elseif (MACHINE_TYPE MATCHES "armv7.*" OR MACHINE_TYPE STREQUAL "armv7")
   target_compile_options(memleax PRIVATE -DMLX_ARMv7)
   target_link_libraries(memleax PRIVATE unwind-arm)
-elseif (UNAME_OUT STREQUAL "aarch64")
+elseif (MACHINE_TYPE STREQUAL "aarch64")
   target_compile_options(memleax PRIVATE -DMLX_AARCH64)
   target_link_libraries(memleax PRIVATE unwind-aarch64)
 else ()
-  message(FATAL_ERROR "Unsupported machine type: ${UNAME_OUT}")
+  message(FATAL_ERROR "Unsupported machine type: ${MACHINE_TYPE}")
 endif()
 
 pkg_search_module(LIBUNWIND REQUIRED libunwind-ptrace)
