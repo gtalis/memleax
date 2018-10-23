@@ -24,14 +24,14 @@ const char *proc_maps(pid_t pid, size_t *start, size_t *end, int *exe_self)
 	/* first, init */
 	if (filp == NULL) {
 		char pname[100];
-		sprintf(pname, "/proc/%d/maps", pid);
+		snprintf(pname, 1024, "/proc/%d/maps", pid);
 		filp = fopen(pname, "r");
 		if (filp == NULL) {
 			perror("Error in open /proc/pid/maps");
 			exit(3);
 		}
 
-		sprintf(pname, "/proc/%d/exe", pid);
+		snprintf(pname, 1024, "/proc/%d/exe", pid);
 		int exe_len = readlink(pname, exe_name, sizeof(exe_name));
 		if (exe_len < 0) {
 			perror("error in open /proc/pid/exe");
@@ -67,7 +67,7 @@ pid_t proc_tasks(pid_t pid)
 
 	if (dirp == NULL) {
 		char tname[100];
-		sprintf(tname, "/proc/%d/task", pid);
+		snprintf(tname, 100, "/proc/%d/task", pid);
 		dirp = opendir(tname);
 		if (dirp == NULL) {
 			perror("Error in open /proc/pid/tasks");
@@ -91,7 +91,7 @@ pid_t proc_tasks(pid_t pid)
 int proc_task_check(pid_t pid, pid_t child)
 {
 	char tname[100];
-	sprintf(tname, "/proc/%d/task", pid);
+	snprintf(tname, 100, "/proc/%d/task", pid);
 	DIR *dirp = opendir(tname);
 	if (dirp == NULL) {
 		perror("Error in open /proc/pid/tasks");

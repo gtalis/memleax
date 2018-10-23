@@ -161,7 +161,9 @@ static int g_index, g_exe_self;
 
 static uint8_t g_build_id[100];
 static int g_buildid_len;
-static char g_debug_fname[1024];
+
+#define DEBUG_FNAME_MAX_LEN	1024
+static char g_debug_fname[DEBUG_FNAME_MAX_LEN];
 static uint32_t g_debug_crc32;
 
 static int debug_valid(const char *debug_path)
@@ -215,7 +217,7 @@ void debug_try_init(const char *path, int exe_self)
 	close(fd);
 
 	if (g_debug_crc32 == 0) {
-		sprintf(g_debug_fname, "%s.debug", p + 1);
+		snprintf(g_debug_fname, DEBUG_FNAME_MAX_LEN, "%s.debug", p + 1);
 	}
 }
 
@@ -240,31 +242,31 @@ const char *debug_try_get(void)
 		g_index = 3;
 		if (g_buildid_len != 0) {
 			char *p = debug_path;
-			p += sprintf(debug_path, "/usr/lib/debug/.build-id/%02x/", g_build_id[0]);
+			p += snprintf(debug_path, 2048, "/usr/lib/debug/.build-id/%02x/", g_build_id[0]);
 			int i;
 			for (i = 1; i < g_buildid_len; i++) {
-				p += sprintf(p, "%02x", g_build_id[i]);
+				p += snprintf(p, 2048, "%02x", g_build_id[i]);
 			}
-			p += sprintf(p, ".debug");
+			p += snprintf(p, 2048, ".debug");
 			if (debug_valid(debug_path)) {
 				return debug_path;
 			}
 		}
 	case 3:
 		g_index = 4;
-		sprintf(debug_path, "%s/%s", g_dir, g_debug_fname);
+		snprintf(debug_path, 2048, "%s/%s", g_dir, g_debug_fname);
 		if (debug_valid(debug_path)) {
 			return debug_path;
 		}
 	case 4:
 		g_index = 5;
-		sprintf(debug_path, "%s/.debug/%s", g_dir, g_debug_fname);
+		snprintf(debug_path, 2048, "%s/.debug/%s", g_dir, g_debug_fname);
 		if (debug_valid(debug_path)) {
 			return debug_path;
 		}
 	case 5:
 		g_index = 6;
-		sprintf(debug_path, "/usr/lib/debug%s/%s", g_dir, g_debug_fname);
+		snprintf(debug_path, 2048, "/usr/lib/debug%s/%s", g_dir, g_debug_fname);
 		if (debug_valid(debug_path)) {
 			return debug_path;
 		}
